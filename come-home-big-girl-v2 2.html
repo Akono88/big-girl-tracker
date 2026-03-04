@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Come Home Big Girl v2</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --pink-deep: #c2185b;
+            --pink-mid: #e91e63;
+            --pink-soft: #f48fb1;
+            --pink-whisper: #fce4ec;
+            --pink-glow: rgba(194, 24, 91, 0.07);
+            --cream: #fffaf6;
+            --white: #ffffff;
+            --text: #3a2a2e;
+            --text-mid: #7a6a6e;
+            --text-light: #a8969a;
+            --border: rgba(194, 24, 91, 0.08);
+            --danger-bg: #fff3e0;
+            --danger-text: #bf360c;
+            --safe-bg: #e8f5e9;
+            --safe-text: #2e7d32;
+            --info-bg: #e3f2fd;
+            --info-text: #1565c0;
+            --warn-bg: #fff8e1;
+            --warn-text: #f57f17;
+            --radius: 18px;
+            --shadow: 0 2px 12px rgba(0,0,0,0.04), 0 0 0 1px var(--border);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Outfit', system-ui, sans-serif;
+            background: var(--pink-whisper); color: var(--text);
+            min-height: 100vh; padding: 0;
+            background-image:
+                radial-gradient(ellipse at 15% 0%, rgba(244,143,177,0.2) 0%, transparent 55%),
+                radial-gradient(ellipse at 85% 100%, rgba(233,30,99,0.08) 0%, transparent 45%);
+        }
+        .app { max-width: 520px; margin: 0 auto; padding: 14px 14px 100px; }
+        header {
+            background: var(--white); border-radius: var(--radius);
+            padding: 28px 18px 22px; text-align: center;
+            box-shadow: var(--shadow); margin-bottom: 6px;
+            position: relative; overflow: hidden;
+        }
+        header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--pink-soft), var(--pink-deep), var(--pink-soft));
+        }
+        .header-icon { font-size: 32px; margin-bottom: 8px; }
+        h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 900; font-size: 1.4rem; color: var(--pink-deep); letter-spacing: 0.3px; }
+        .subtitle { font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase; color: var(--text-light); margin-top: 4px; font-weight: 700; }
+        .cst-clock { margin-top: 8px; font-size: 0.68rem; font-weight: 600; color: var(--pink-mid); letter-spacing: 0.5px; }
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--white);
+            border-top: 1px solid var(--border); display: flex; z-index: 50;
+            box-shadow: 0 -2px 16px rgba(0,0,0,0.04); max-width: 520px; margin: 0 auto;
+        }
+        .nav-btn {
+            flex: 1; border: none; background: none; padding: 10px 4px 8px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            color: var(--text-light); transition: color 0.2s; font-family: 'Outfit', sans-serif;
+        }
+        .nav-btn i { font-size: 18px; }
+        .nav-btn span { font-size: 0.55rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+        .nav-btn.active { color: var(--pink-deep); }
+        .nav-btn.active i { transform: scale(1.1); }
+        .tab-view { display: none; animation: fadeUp 0.3s ease; }
+        .tab-view.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--white); border-radius: var(--radius); padding: 18px; margin-top: 12px; box-shadow: var(--shadow); }
+        .card-title { font-family: 'Fraunces', Georgia, serif; font-weight: 700; color: var(--pink-deep); font-size: 0.9rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .card-title i { font-size: 0.8rem; opacity: 0.65; }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; }
+        .toggle-label { font-weight: 800; font-size: 0.8rem; color: var(--pink-deep); letter-spacing: 0.5px; }
+        .toggle-sub { font-size: 0.6rem; color: var(--text-light); margin-top: 1px; font-weight: 500; }
+        .switch { position: relative; width: 52px; height: 28px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #e8e0e2; border-radius: 28px; transition: background 0.3s; }
+        .slider::before { content: '🐇'; position: absolute; font-size: 12px; width: 20px; height: 20px; left: 4px; bottom: 4px; background: var(--white); border-radius: 50%; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        input:checked + .slider { background: var(--pink-mid); }
+        input:checked + .slider::before { transform: translateX(24px); content: '👶'; }
+        .toddler-alert { margin-top: 10px; padding: 10px 12px; background: var(--danger-bg); border-radius: 12px; font-size: 0.7rem; color: var(--danger-text); font-weight: 600; display: none; align-items: center; gap: 8px; animation: fadeUp 0.25s ease; }
+        .toddler-alert.active { display: flex; }
+        .progress-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .progress-bar { flex: 1; height: 5px; background: var(--pink-whisper); border-radius: 5px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; border-radius: 5px; background: linear-gradient(90deg, var(--pink-soft), var(--pink-deep)); transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+        .progress-text { font-size: 0.62rem; font-weight: 700; color: var(--pink-deep); white-space: nowrap; }
+        .task-item { display: flex; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--pink-whisper); gap: 10px; transition: opacity 0.25s; }
+        .task-item:last-child { border-bottom: none; }
+        .task-item.done { opacity: 0.4; }
+        .task-item.done .task-name { text-decoration: line-through; }
+        .time-pill { font-size: 0.55rem; font-weight: 700; color: var(--pink-deep); background: var(--pink-glow); padding: 3px 7px; border-radius: 7px; min-width: 58px; text-align: center; letter-spacing: 0.3px; }
+        .task-info { flex: 1; min-width: 0; }
+        .task-name { display: block; font-weight: 600; font-size: 0.82rem; line-height: 1.25; }
+        .task-note { display: block; font-size: 0.65rem; color: var(--text-light); margin-top: 1px; }
+        .chk-wrap { width: 22px; height: 22px; flex-shrink: 0; }
+        .chk-wrap input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; border: 2px solid var(--pink-soft); border-radius: 7px; cursor: pointer; transition: all 0.2s; background: transparent; }
+        .chk-wrap input:checked { background: var(--pink-deep); border-color: var(--pink-deep); }
+        .chk-wrap input:checked::after { content: '✓'; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 700; width: 100%; height: 100%; }
+        textarea { width: 100%; height: 90px; border: 2px solid var(--pink-whisper); border-radius: 12px; padding: 10px 12px; font-family: 'Outfit', sans-serif; font-size: 0.78rem; resize: none; outline: none; color: var(--text); transition: border-color 0.2s; background: var(--cream); }
+        textarea::placeholder { color: #c9b5ba; }
+        textarea:focus { border-color: var(--pink-mid); background: var(--white); }
+        .btn-trade { width: 100%; padding: 14px; border: none; border-radius: 14px; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 0.82rem; cursor: pointer; letter-spacing: 0.5px; background: linear-gradient(135deg, var(--pink-deep), var(--pink-mid)); color: white; box-shadow: 0 4px 14px rgba(194,24,91,0.2); display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; transition: transform 0.1s; }
+        .btn-trade:active { transform: scale(0.97); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(58,42,46,0.5); backdrop-filter: blur(4px); z-index: 100; justify-content: center; align-items: flex-end; padding: 14px; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: var(--white); border-radius: 22px 22px 18px 18px; padding: 24px 20px 18px; width: 100%; max-width: 500px; animation: modalUp 0.3s cubic-bezier(0.16,1,0.3,1); max-height: 80vh; overflow-y: auto; }
+        @keyframes modalUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .modal h3 { font-family: 'Fraunces', Georgia, serif; color: var(--pink-deep); font-size: 1rem; margin-bottom: 14px; text-align: center; }
+        .step { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; }
+        .step-num { width: 24px; height: 24px; flex-shrink: 0; background: var(--pink-glow); color: var(--pink-deep); font-weight: 800; font-size: 0.7rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .step-text { font-size: 0.78rem; line-height: 1.45; color: var(--text); }
+        .btn-close { margin-top: 14px; width: 100%; padding: 12px; border: 2px solid var(--pink-whisper); background: transparent; border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--text-light); cursor: pointer; font-size: 0.78rem; }
+        .sync-bar { text-align: center; font-size: 0.55rem; color: var(--text-light); padding: 10px 0 2px; font-weight: 600; letter-spacing: 0.3px; }
+        .sync-bar.error { color: #e53935; }
+        .sync-bar.ok { color: var(--safe-text); }
+        .btn-reset { display: block; margin: 6px auto 0; background: none; border: none; font-size: 0.55rem; color: var(--text-light); cursor: pointer; text-decoration: underline; font-family: 'Outfit', sans-serif; }
+        .log-entry { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--pink-whisper); animation: fadeUp 0.2s ease; }
+        .log-entry:last-child { border-bottom: none; }
+        .log-time-col { min-width: 68px; text-align: right; padding-top: 2px; }
+        .log-date { font-size: 0.55rem; font-weight: 700; color: var(--pink-deep); letter-spacing: 0.3px; }
+        .log-time { font-size: 0.5rem; color: var(--text-light); font-weight: 600; }
+        .log-body { flex: 1; }
+        .log-type { display: inline-block; font-size: 0.5rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .log-type.task { background: var(--safe-bg); color: var(--safe-text); }
+        .log-type.note { background: var(--info-bg); color: var(--info-text); }
+        .log-type.toggle { background: var(--warn-bg); color: var(--warn-text); }
+        .log-text { font-size: 0.78rem; line-height: 1.4; }
+        .empty-log { text-align: center; padding: 30px 0; color: var(--text-light); font-size: 0.8rem; }
+        .btn-clear-log { margin-top: 10px; width: 100%; padding: 10px; border: 1px solid var(--pink-whisper); background: transparent; border-radius: 10px; font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--text-light); cursor: pointer; font-size: 0.7rem; }
+        .section-nav { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+        .section-btn { font-family: 'Outfit', sans-serif; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.3px; padding: 6px 12px; border-radius: 20px; border: none; cursor: pointer; background: var(--pink-whisper); color: var(--text-mid); transition: all 0.2s; white-space: nowrap; }
+        .section-btn.active { background: var(--pink-deep); color: white; }
+        .info-section { display: none; animation: fadeUp 0.25s ease; }
+        .info-section.active { display: block; }
+        .info-block { margin-top: 10px; padding: 14px; border-radius: 14px; }
+        .info-block.danger { background: #fef2f2; border: 1px solid #fecaca; }
+        .info-block.safe { background: #f0fdf4; border: 1px solid #bbf7d0; }
+        .info-block.info { background: #eff6ff; border: 1px solid #bfdbfe; }
+        .info-block.warn { background: #fffbeb; border: 1px solid #fde68a; }
+        .info-block-title { font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 0.82rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .info-block.danger .info-block-title { color: #b91c1c; }
+        .info-block.safe .info-block-title { color: #15803d; }
+        .info-block.info .info-block-title { color: #1d4ed8; }
+        .info-block.warn .info-block-title { color: #a16207; }
+        .info-item { padding: 8px 0; font-size: 0.76rem; line-height: 1.5; border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .info-item:last-child { border-bottom: none; }
+        .info-item strong { font-weight: 700; }
+        .info-item em { font-style: normal; color: var(--text-light); font-size: 0.68rem; display: block; margin-top: 2px; }
+        .schedule-header { font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 0.78rem; color: var(--pink-deep); padding: 8px 0 4px; border-bottom: 2px solid var(--pink-whisper); margin-top: 10px; }
+        .schedule-step { padding: 6px 0; font-size: 0.74rem; line-height: 1.5; border-bottom: 1px solid rgba(0,0,0,0.03); display: flex; gap: 8px; }
+        .schedule-step:last-child { border-bottom: none; }
+        .schedule-num { font-weight: 800; color: var(--pink-mid); font-size: 0.68rem; min-width: 16px; }
+        .brand-card { margin-top: 8px; padding: 10px 12px; background: var(--cream); border-radius: 10px; }
+        .brand-name { font-weight: 700; font-size: 0.78rem; color: var(--text); }
+        .brand-desc { font-size: 0.68rem; color: var(--text-mid); margin-top: 2px; }
+    </style>
+</head>
+<body>
+<div class="app" id="app">
+    <header>
+        <div class="header-icon">🐕‍🦺</div>
+        <h1>Come Home Big Girl</h1>
+        <div class="subtitle">The White Rabbit Protocol · v2</div>
+        <div class="cst-clock" id="cstClock"></div>
+    </header>
+    <div class="tab-view active" id="tab-daily">
+        <div class="card">
+            <div class="toggle-row">
+                <div><div class="toggle-label">TODDLER IN HOUSE?</div><div class="toggle-sub">Heightened awareness mode</div></div>
+                <label class="switch"><input type="checkbox" id="toddlerSwitch"><span class="slider"></span></label>
+            </div>
+            <div class="toddler-alert" id="toddlerAlert"><i class="fa-solid fa-triangle-exclamation"></i> Gate all zones. No unsupervised contact. Trade-up protocol active.</div>
+        </div>
+        <div class="card">
+            <div class="card-title"><i class="fa-solid fa-paw"></i> Daily Hop-List</div>
+            <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">0 / 7</div></div>
+            <div id="taskList"></div>
+        </div>
+        <div class="card">
+            <div class="card-title"><i class="fa-solid fa-pen-nib"></i> Behavioral Notes</div>
+            <textarea id="dailyNotes" placeholder="Stool quality? Anxiety signs? Reaction to guests or sounds?"></textarea>
+        </div>
+        <button class="btn-trade" id="tradeBtn"><i class="fa-solid fa-shield-halved"></i> EMERGENCY TRADE-UP</button>
+        <div class="sync-bar" id="syncStatus"><i class="fa-solid fa-cloud"></i> Connecting to cloud…</div>
+        <button class="btn-reset" id="resetBtn">Reset today's data</button>
+    </div>
+    <div class="tab-view" id="tab-log">
+        <div class="card">
+            <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Activity Log (CST)</div>
+            <div id="logList"><div class="empty-log">No entries yet. Activity will appear here as you use the tracker.</div></div>
+            <button class="btn-clear-log" id="clearLogBtn">Clear Log History</button>
+        </div>
+    </div>
+    <div class="tab-view" id="tab-info">
+        <div class="section-nav" id="sectionNav">
+            <button class="section-btn active" data-sec="diagnosis">🧠 Diagnosis</button>
+            <button class="section-btn" data-sec="never">🚫 Never Do</button>
+            <button class="section-btn" data-sec="diet">🍗 Diet</button>
+            <button class="section-btn" data-sec="schedule">📋 Schedule</button>
+            <button class="section-btn" data-sec="brands">🏷️ Brands</button>
+        </div>
+        <div class="info-section active" id="sec-diagnosis">
+            <div class="info-block info">
+                <div class="info-block-title"><i class="fa-solid fa-brain"></i> Diagnosis: Resource Guarding via Environmental Displacement</div>
+                <div class="info-item"><strong>The Large Home Paradox</strong><em>A larger home means more territory to "clear" for safety. She doesn't feel she owns the space yet, so she hyper-focuses on small, portable items (leash, toys, bowl).</em></div>
+                <div class="info-item"><strong>The "Half-Time" Toddler Trigger</strong><em>The 50/50 custody schedule prevents her from reaching homeostasis (steady state). Just as she relaxes, the "unpredictable element" (the child) returns — keeping her in hyper-vigilance, which physically manifests as Hemorrhagic Colitis (blood in stool).</em></div>
+                <div class="info-item"><strong>Lethargy = Learned Helplessness</strong><em>She feels her space is being invaded and she cannot stop it, so she shuts down to conserve energy. This is a defense mechanism, not laziness.</em></div>
+            </div>
+        </div>
+        <div class="info-section" id="sec-never">
+            <div class="info-block danger">
+                <div class="info-block-title"><i class="fa-solid fa-ban"></i> The "Never Do" List</div>
+                <div class="info-item"><strong>DO NOT punish the growl</strong><em>A growl is a warning. Suppress the growl → she skips the warning → goes straight to the bite.</em></div>
+                <div class="info-item"><strong>DO NOT allow the 2.5-year-old near her while eating or in her crate</strong><em>High-risk bite zone. The toddler's unpredictable movements are perceived as a threat to her remaining "safe" resources.</em></div>
+                <div class="info-item"><strong>DO NOT "free feed"</strong><em>Leaving food out all day increases anxiety — she feels she has to guard it 24/7.</em></div>
+                <div class="info-item"><strong>DO NOT force "new faces" to pet her</strong><em>If she is lethargic and tense, she is overstimulated. Forcing interaction leads to a fear-based bite.</em></div>
+            </div>
+            <div class="info-block danger" style="margin-top: 10px;">
+                <div class="info-block-title"><i class="fa-solid fa-skull-crossbones"></i> Permanent Non-Negotiables</div>
+                <div class="info-item"><strong>NEVER "reach and grab"</strong><em>If she has a toy or leash, never pull it from her. You must "trade up" — offer high-value treat (chicken) so she chooses to drop the item.</em></div>
+                <div class="info-item"><strong>NEVER feed in a high-traffic area</strong><em>Her bowl must be in a corner or crate where no one can walk behind her.</em></div>
+                <div class="info-item"><strong>NEVER allow the toddler to "hug" her</strong><em>Huskies perceive hugs as restraint, which triggers fight-or-flight response.</em></div>
+                <div class="info-item"><strong>NEVER skip the morning walk</strong><em>A walk is "job" time. Without a job, Huskies become "unemployed" — and unemployed Huskies become destructive or anxious.</em></div>
+            </div>
+        </div>
+        <div class="info-section" id="sec-diet">
+            <div class="info-block warn">
+                <div class="info-block-title"><i class="fa-solid fa-fire"></i> High-Stress "Bland" Recovery Diet</div>
+                <div class="info-item"><strong>✅ Boiled Chicken Breast</strong><em>Shredded, no skin, no bones, no seasoning.</em></div>
+                <div class="info-item"><strong>✅ White Rice (Overcooked)</strong><em>Mushy to make it easy to digest.</em></div>
+                <div class="info-item"><strong>✅ Pureed Pumpkin</strong><em>100% pumpkin (NOT pie filling). Soluble fiber to firm stool and soothe the colon.</em></div>
+                <div class="info-item" style="margin-top:6px;padding-top:10px;border-top:2px dashed rgba(0,0,0,0.06);"><strong>🚫 NO Store-Bought Treats</strong><em>Too many additives for a sensitive gut.</em></div>
+                <div class="info-item"><strong>🚫 NO High-Fat Proteins</strong><em>No beef, bacon, or skin.</em></div>
+                <div class="info-item"><strong>🚫 NO Dairy</strong><em>Most Huskies are lactose intolerant — worsens colitis.</em></div>
+            </div>
+            <div class="info-block safe" style="margin-top: 10px;">
+                <div class="info-block-title"><i class="fa-solid fa-heart-pulse"></i> Ideal Maintenance Profile</div>
+                <div class="info-item"><strong>High-Protein / Moderate-Fat</strong><em>Huskies are "metabolic wonders." Salmon or Lamb is often better than Chicken for sensitive skin/stomachs.</em></div>
+                <div class="info-item"><strong>Daily Probiotics (Forever)</strong><em>Purina FortiFlora or Bernie's Perfect Poop. Strengthens the gut-brain axis to handle stress better.</em></div>
+                <div class="info-item"><strong>Omega-3 Fatty Acids</strong><em>Fish oil supplements for cognitive function and healthy coat during stress of a move.</em></div>
+                <div class="info-item"><strong>🚫 Avoid: Corn, Wheat, Soy, Meat By-Products</strong><em>Fillers that cause inflammation in a breed designed for clean, high-energy fuel.</em></div>
+            </div>
+        </div>
+        <div class="info-section" id="sec-schedule">
+            <div class="card" style="margin-top:10px;box-shadow:none;border:1px solid var(--border);">
+                <div class="card-title"><i class="fa-solid fa-calendar-check"></i> The Daily Stability Schedule</div>
+                <p style="font-size:0.72rem;color:var(--text-mid);margin-bottom:8px;">Consistency is the "cure" for Husky anxiety. Follow this exact timing every day.</p>
+                <div class="schedule-header">☀️ Morning (7:00 – 8:30 AM)</div>
+                <div class="schedule-step"><div class="schedule-num">1.</div><div><strong>Exercise First</strong> — 20-min leashed walk, primary owner only. Reinforces your bond.</div></div>
+                <div class="schedule-step"><div class="schedule-num">2.</div><div><strong>Safe Breakfast</strong> — Feed inside crate or behind baby gate. Sit nearby as her "protector."</div></div>
+                <div class="schedule-step"><div class="schedule-num">3.</div><div><strong>The Settle</strong> — Frozen Kong with wet food or pumpkin. Gives her a "job" while the house gets busy.</div></div>
+                <div class="schedule-header">🌤️ Mid-Day (12:00 – 1:00 PM)</div>
+                <div class="schedule-step"><div class="schedule-num">1.</div><div><strong>Potty Break</strong> — Quick outdoor session.</div></div>
+                <div class="schedule-step"><div class="schedule-num">2.</div><div><strong>Mental Stimulation</strong> — 5 min of Sit/Stay/Place training with high-value treats.</div></div>
+                <div class="schedule-header">🌇 Evening (5:00 – 7:00 PM)</div>
+                <div class="schedule-step"><div class="schedule-num">1.</div><div><strong>Decompression Walk</strong> — 30–45 min walk to burn pent-up energy.</div></div>
+                <div class="schedule-step"><div class="schedule-num">2.</div><div><strong>Dinner</strong> — Same "Safe Zone" protocol. No children within 10 feet.</div></div>
+                <div class="schedule-step"><div class="schedule-num">3.</div><div><strong>One-on-One Time</strong> — After toddler goes to bed: 15 min of calm brushing or petting.</div></div>
+                <div class="schedule-header">🌙 Night (10:00 PM)</div>
+                <div class="schedule-step"><div class="schedule-num">1.</div><div><strong>Final Potty</strong> — Calm trip outside.</div></div>
+                <div class="schedule-step"><div class="schedule-num">2.</div><div><strong>Bedtime</strong> — Crate with a safe, durable chew toy. The crate is her sanctuary — no one (especially the child) may bother her here.</div></div>
+            </div>
+        </div>
+        <div class="info-section" id="sec-brands">
+            <div class="info-block safe">
+                <div class="info-block-title"><i class="fa-solid fa-star"></i> Recommended Brands &amp; Nutrition</div>
+                <p style="font-size:0.7rem;color:var(--text-mid);margin-bottom:8px;">Based on her 5-year-old metabolic needs and sensitive colon.</p>
+                <div class="brand-card"><div class="brand-name">🥇 Orijen Six Fish / ACANA Pacifica</div><div class="brand-desc">Top-tier kibble. Grain-free, high-protein, loaded with Omega-3s — natural anti-inflammatory for brain and gut.</div></div>
+                <div class="brand-card"><div class="brand-name">🥈 Purina Pro Plan Sensitive Skin &amp; Stomach</div><div class="brand-desc">Lamb or Salmon &amp; Rice. Contains live probiotics, widely used by vets to manage colitis.</div></div>
+                <div class="brand-card"><div class="brand-name">🥣 Wellness Core 95% Whitefish &amp; Salmon</div><div class="brand-desc">Wet food topper — use as a "lure" to get her excited about her bowl again.</div></div>
+                <div class="brand-card" style="margin-top:10px;background:var(--info-bg);"><div class="brand-name">💊 Supplements</div><div class="brand-desc"><strong>Zesty Paws Salmon Oil</strong> — coat &amp; brain health.<br><strong>Bernie's Perfect Poop</strong> — fiber/prebiotic/probiotic/enzyme blend for firming stools.</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="bottom-nav" id="bottomNav">
+    <button class="nav-btn active" data-tab="tab-daily"><i class="fa-solid fa-house"></i><span>Today</span></button>
+    <button class="nav-btn" data-tab="tab-log"><i class="fa-solid fa-calendar-days"></i><span>Log</span></button>
+    <button class="nav-btn" data-tab="tab-info"><i class="fa-solid fa-book-open"></i><span>Know Me</span></button>
+</div>
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <h3>🚨 Emergency Trade-Up</h3>
+        <div class="step"><div class="step-num">1</div><div class="step-text">Toss a <strong>high-value treat</strong> (chicken, carrot) about 4 feet away from the guarded item.</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Wait</strong> for her to move toward the treat. Do not reach yet.</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Calmly secure</strong> the guarded item while she's occupied.</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Return a <strong>safe replacement toy</strong> once the child is clear of the area.</div></div>
+        <button class="btn-close" id="closeModal">Got It — Close</button>
+    </div>
+</div>
+<script>
+    /* ═══ SUPABASE CLOUD SYNC ═══ */
+    const SUPABASE_URL = 'https://dwjfalxktunadksddmzw.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3amZhbHhrdHVuYWRrc2RkbXp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1OTkwMjQsImV4cCI6MjA4ODE3NTAyNH0.fWCU-H23WHRH3lgdYY5U9uQR9cO1UIEWCz3MosVWtv8';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const STATE_ID = 'daily-state';
+    const LOG_ID = 'activity-log';
+
+    /* ═══ CST CLOCK ═══ */
+    function updateClock() {
+        const cst = new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+        document.getElementById('cstClock').textContent = cst + ' CST';
+    }
+    updateClock(); setInterval(updateClock, 1000);
+
+    function getCSTString() {
+        return new Date().toLocaleString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+    function getCSTDate() {
+        return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+    }
+
+    /* ═══ SCHEDULE ═══ */
+    const schedule = [
+        { time: "7:00 AM", task: "Acoustic Shield On", note: "White noise for the bunny" },
+        { time: "7:30 AM", task: "Bunny-Bonding Walk", note: "Primary owner only" },
+        { time: "8:00 AM", task: "Recovery Breakfast", note: "Safe zone + Probiotics" },
+        { time: "12:00 PM", task: "Mid-Day Sniffari", note: "Nose work in yard" },
+        { time: "5:00 PM", task: "The Big Hop (Walk)", note: "Physical drain session" },
+        { time: "6:00 PM", task: "Recovery Dinner", note: "Bland diet protocol" },
+        { time: "9:00 PM", task: "Quiet Petting Time", note: "Reassure her she is safe" }
+    ];
+
+    /* ═══ BUILD TASKS ═══ */
+    const listEl = document.getElementById('taskList');
+    listEl.innerHTML = schedule.map((item, i) => '<div class="task-item" id="row-' + i + '"><div class="time-pill">' + item.time + '</div><div class="task-info"><span class="task-name">' + item.task + '</span><span class="task-note">' + item.note + '</span></div><div class="chk-wrap"><input type="checkbox" id="task-' + i + '" data-idx="' + i + '"></div></div>').join('');
+
+    /* ═══ STATE ═══ */
+    var state = { toddler: false, notes: '', tasks: Array(schedule.length).fill(false), date: '' };
+    var logEntries = [];
+
+    /* ═══ LOAD FROM SUPABASE ═══ */
+    async function loadState() {
+        try {
+            var res = await sb.from('husky_logs').select('content').eq('id', STATE_ID).single();
+            if (res.data && res.data.content) {
+                var s = res.data.content;
+                var today = getCSTDate();
+                if (s.date !== today) { s.tasks = Array(schedule.length).fill(false); s.notes = ''; s.date = today; }
+                state = Object.assign({}, state, s);
+            }
+        } catch(e) { console.log('No saved state yet'); }
+        try {
+            var res2 = await sb.from('husky_logs').select('content').eq('id', LOG_ID).single();
+            if (res2.data && res2.data.content) logEntries = res2.data.content;
+        } catch(e) {}
+        applyState();
+        renderLog();
+        syncIndicator('ready');
+    }
+
+    function applyState() {
+        document.getElementById('toddlerSwitch').checked = state.toddler;
+        toggleAlert(state.toddler);
+        document.getElementById('dailyNotes').value = state.notes || '';
+        state.tasks.forEach(function(done, i) {
+            var cb = document.getElementById('task-' + i);
+            if (cb) cb.checked = done;
+            var row = document.getElementById('row-' + i);
+            if (row) { if (done) row.classList.add('done'); else row.classList.remove('done'); }
+        });
+        updateProgress();
+    }
+
+    /* ═══ SAVE TO SUPABASE ═══ */
+    async function saveState() {
+        state.date = getCSTDate();
+        syncIndicator('saving');
+        try {
+            var res = await sb.from('husky_logs').upsert({ id: STATE_ID, content: state, updated_at: new Date().toISOString() });
+            if (res.error) throw res.error;
+            syncIndicator('saved');
+        } catch(e) { console.error('Save error:', e); syncIndicator('error'); }
+    }
+
+    async function saveLog() {
+        try {
+            await sb.from('husky_logs').upsert({ id: LOG_ID, content: logEntries, updated_at: new Date().toISOString() });
+        } catch(e) { console.error('Log save error:', e); }
+    }
+
+    function syncIndicator(m) {
+        var el = document.getElementById('syncStatus');
+        el.className = 'sync-bar';
+        if (m === 'ready') { el.classList.add('ok'); el.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Connected to Cloud'; }
+        else if (m === 'saving') { el.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing…'; }
+        else if (m === 'saved') { el.classList.add('ok'); el.innerHTML = '<i class="fa-solid fa-circle-check"></i> Saved to Cloud'; }
+        else if (m === 'error') { el.classList.add('error'); el.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Sync Error — check connection'; }
+    }
+
+    function updateProgress() {
+        var done = state.tasks.filter(Boolean).length;
+        document.getElementById('progressFill').style.width = (done / schedule.length * 100) + '%';
+        document.getElementById('progressText').textContent = done + ' / ' + schedule.length;
+    }
+
+    function toggleAlert(on) { var el = document.getElementById('toddlerAlert'); if (on) el.classList.add('active'); else el.classList.remove('active'); }
+
+    /* ═══ LOG ═══ */
+    function addLog(type, text) {
+        logEntries.unshift({ type: type, text: text, ts: getCSTString(), date: getCSTDate() });
+        if (logEntries.length > 500) logEntries = logEntries.slice(0, 500);
+        saveLog();
+        renderLog();
+    }
+
+    function renderLog() {
+        var el = document.getElementById('logList');
+        if (logEntries.length === 0) { el.innerHTML = '<div class="empty-log">No entries yet. Activity will appear here as you use the tracker.</div>'; return; }
+        el.innerHTML = logEntries.map(function(e) {
+            return '<div class="log-entry"><div class="log-time-col"><div class="log-date">' + (e.date||'') + '</div><div class="log-time">' + (e.ts||'') + '</div></div><div class="log-body"><span class="log-type ' + e.type + '">' + e.type + '</span><div class="log-text">' + e.text + '</div></div></div>';
+        }).join('');
+    }
+
+    /* ═══ EVENTS ═══ */
+    document.getElementById('toddlerSwitch').addEventListener('change', function() {
+        state.toddler = this.checked;
+        toggleAlert(this.checked);
+        addLog('toggle', this.checked ? 'Toddler toggled ON — heightened awareness' : 'Toddler toggled OFF');
+        saveState();
+    });
+
+    document.querySelectorAll('#taskList input[type="checkbox"]').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var i = parseInt(this.dataset.idx);
+            state.tasks[i] = this.checked;
+            var row = document.getElementById('row-' + i);
+            if (this.checked) row.classList.add('done'); else row.classList.remove('done');
+            updateProgress();
+            addLog('task', (this.checked ? '✅' : '⬜') + ' ' + schedule[i].task + ' (' + schedule[i].time + ')');
+            saveState();
+        });
+    });
+
+    var noteTimer;
+    document.getElementById('dailyNotes').addEventListener('input', function() {
+        var self = this;
+        state.notes = self.value;
+        clearTimeout(noteTimer);
+        noteTimer = setTimeout(function() {
+            saveState();
+            if (self.value.trim()) addLog('note', self.value.trim().substring(0, 120) + (self.value.length > 120 ? '…' : ''));
+        }, 1500);
+    });
+
+    /* ═══ MODAL ═══ */
+    document.getElementById('tradeBtn').addEventListener('click', function() { document.getElementById('modal').classList.add('open'); });
+    document.getElementById('closeModal').addEventListener('click', function() { document.getElementById('modal').classList.remove('open'); });
+    document.getElementById('modal').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+
+    /* ═══ RESET ═══ */
+    document.getElementById('resetBtn').addEventListener('click', async function() {
+        if (!confirm("Reset today's data?")) return;
+        state = { toddler: false, notes: '', tasks: Array(schedule.length).fill(false), date: getCSTDate() };
+        addLog('toggle', '🔄 Daily data reset');
+        await saveState();
+        applyState();
+    });
+    document.getElementById('clearLogBtn').addEventListener('click', async function() {
+        if (!confirm('Clear all log history?')) return;
+        logEntries = [];
+        await saveLog();
+        renderLog();
+    });
+
+    /* ═══ NAV ═══ */
+    document.querySelectorAll('.nav-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.tab-view').forEach(function(t) { t.classList.remove('active'); });
+            this.classList.add('active');
+            document.getElementById(this.dataset.tab).classList.add('active');
+        });
+    });
+    document.querySelectorAll('.section-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.section-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.info-section').forEach(function(s) { s.classList.remove('active'); });
+            this.classList.add('active');
+            document.getElementById('sec-' + this.dataset.sec).classList.add('active');
+        });
+    });
+
+    /* ═══ INIT ═══ */
+    loadState();
+</script>
+</body>
+</html>
